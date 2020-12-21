@@ -33,7 +33,11 @@ const Header = () => {
                     Logout
                   </NavDropdown.Item>
                 </NavDropdown>
-              ) : null}
+              ) : (
+                <LinkContainer to="/login">
+                  <Navbar.Link>Login</Navbar.Link>
+                </LinkContainer>
+              )}
               {userInfo && userInfo.isAdmin && (
                 <NavDropdown title="Admin" id="adminmenu">
                   <LinkContainer to="/admin/productlist">
