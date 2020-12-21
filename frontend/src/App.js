@@ -21,7 +21,10 @@ function App() {
         <main className="py-3">
           <Switch>
             <Route path="/" component={HomeScreen} exact />
-            <Route path="/login" component={LoginScreen} />
+            <Route
+              path="/login/admin/pankajplatinumgalary"
+              component={LoginScreen}
+            />
             <Route path="/product/:id" component={ProductScreen} />
 
             <Route
