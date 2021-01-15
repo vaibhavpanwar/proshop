@@ -1,157 +1,161 @@
-import Product from "../models/productModel.js";
-import asyncHandler from "express-async-handler";
+import asyncHandler from 'express-async-handler'
+import Product from '../models/productModel.js'
 
-//@desc     Fetch all products
-//@req      GET /api/products
-//@access   Public
+// @desc    Fetch all products
+// @route   GET /api/products
+// @access  Public
 const getProducts = asyncHandler(async (req, res) => {
-  const pageSize = 8;
-  const page = Number(req.query.pageNumber) || 1;
+  const pageSize = 10
+  const page = Number(req.query.pageNumber) || 1
+
   const keyword = req.query.keyword
     ? {
         name: {
           $regex: req.query.keyword,
-          $options: "i",
+          $options: 'i',
         },
       }
-    : {};
-  const count = await Product.countDocuments({ ...keyword });
+    : {}
+
+  const count = await Product.countDocuments({ ...keyword })
   const products = await Product.find({ ...keyword })
     .limit(pageSize)
-    .skip(pageSize * (page - 1));
+    .skip(pageSize * (page - 1))
 
-  res.json({ products, page, pages: Math.ceil(count / pageSize) });
-});
+  res.json({ products, page, pages: Math.ceil(count / pageSize) })
+})
 
-//@desc     Fetch single product by id
-//@req      GET /api/products/:id
-//@access   Public
-
+// @desc    Fetch single product
+// @route   GET /api/products/:id
+// @access  Public
 const getProductById = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id)
 
   if (product) {
-    res.json(product);
+    res.json(product)
   } else {
-    res.status(404);
-    throw new Error("Product Not found");
+    res.status(404)
+    throw new Error('Product not found')
   }
-});
+})
 
-//@desc     DELETE product
-//@req      DELETE /api/products/:id
-//@access   Private/admin
-
+// @desc    Delete a product
+// @route   DELETE /api/products/:id
+// @access  Private/Admin
 const deleteProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id)
+
   if (product) {
-    await product.remove();
-    res.json({ message: "Product removed" });
+    await product.remove()
+    res.json({ message: 'Product removed' })
   } else {
-    res.status(404);
-    throw new Error("Product Not found");
+    res.status(404)
+    throw new Error('Product not found')
   }
-});
+})
 
-//@desc     Create A product
-//@req      Post /api/products/
-//@access   Private/admin
-
+// @desc    Create a product
+// @route   POST /api/products
+// @access  Private/Admin
 const createProduct = asyncHandler(async (req, res) => {
   const product = new Product({
-    name: "Sample ",
-    price: 550,
-    description:
-      "Description Epoxy Resin Decorative Lamp with 100% natural teak wood. Each piece is different and made upon special order.Production period is 8-10 days plus shippingDetails  Material -  `` TeakItem Dimensions - 25*25*15(cm)Item Weight - 400gramsTop Material - TeakFrame Material - Wood",
-    image: "/images/sample.jpg",
-    amazonLink: "https://www.amazon.in/",
-    flipkartLink: "https://www.amazon.in/",
-    featured: false,
+    name: 'Sample name',
+    price: 0,
     user: req.user._id,
-  });
-  const newProduct = await product.save();
-  res.json(newProduct);
-});
+    image: '/images/sample.jpg',
+    brand: 'Sample brand',
+    category: 'Sample category',
+    countInStock: 0,
+    numReviews: 0,
+    description: 'Sample description',
+  })
 
-//@desc     Update A product
-//@req      PUT /api/products/:id
-//@access   Private/admin
+  const createdProduct = await product.save()
+  res.status(201).json(createdProduct)
+})
 
+// @desc    Update a product
+// @route   PUT /api/products/:id
+// @access  Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
   const {
     name,
     price,
-    featured,
-
     description,
-    amazonLink,
-    flipkartLink,
     image,
-  } = req.body;
+    brand,
+    category,
+    countInStock,
+  } = req.body
 
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id)
+
   if (product) {
-    product.name = name;
-    product.price = price;
-    product.description = description;
-    product.image = image;
-    product.featured = featured;
-    product.flipkartLink = flipkartLink;
-    product.amazonLink = amazonLink;
+    product.name = name
+    product.price = price
+    product.description = description
+    product.image = image
+    product.brand = brand
+    product.category = category
+    product.countInStock = countInStock
 
-    const updatedProduct = await product.save();
-    res.json(updatedProduct);
+    const updatedProduct = await product.save()
+    res.json(updatedProduct)
   } else {
-    res.status(404);
-    throw new Error("Product Not Found");
+    res.status(404)
+    throw new Error('Product not found')
   }
-});
+})
 
-//@desc     Create a new review
-//@req      PUT /api/products/:id/review
-//@access   Private/admin
-
+// @desc    Create new review
+// @route   POST /api/products/:id/reviews
+// @access  Private
 const createProductReview = asyncHandler(async (req, res) => {
-  const { rating, comment } = req.body;
+  const { rating, comment } = req.body
 
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id)
+
   if (product) {
     const alreadyReviewed = product.reviews.find(
       (r) => r.user.toString() === req.user._id.toString()
-    );
+    )
+
     if (alreadyReviewed) {
-      res.status(400);
-      throw new Error("Product Already Reviewed");
+      res.status(400)
+      throw new Error('Product already reviewed')
     }
+
     const review = {
       name: req.user.name,
       rating: Number(rating),
       comment,
       user: req.user._id,
-    };
-    product.reviews.push(review);
-    product.numReviews = product.reviews.length;
+    }
+
+    product.reviews.push(review)
+
+    product.numReviews = product.reviews.length
+
     product.rating =
       product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-      product.reviews.length;
+      product.reviews.length
 
-    await product.save();
-    res.status(201).json({ message: "Review added succesfully" });
+    await product.save()
+    res.status(201).json({ message: 'Review added' })
   } else {
-    res.status(404);
-    throw new Error("Product Not Found");
+    res.status(404)
+    throw new Error('Product not found')
   }
-});
+})
 
-//@desc     Get top rated Products
-//@req      GET /api/products/top
-//@access   Public
-
+// @desc    Get top rated products
+// @route   GET /api/products/top
+// @access  Public
 const getTopProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({ featured: true }).limit(4);
+  const products = await Product.find({}).sort({ rating: -1 }).limit(3)
 
-  res.json(products);
-});
+  res.json(products)
+})
 
 export {
   getProducts,
@@ -161,4 +165,4 @@ export {
   updateProduct,
   createProductReview,
   getTopProducts,
-};
+}

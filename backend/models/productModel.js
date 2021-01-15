@@ -1,13 +1,28 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose'
+
+const reviewSchema = mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    rating: { type: Number, required: true },
+    comment: { type: String, required: true },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'User',
+    },
+  },
+  {
+    timestamps: true,
+  }
+)
 
 const productSchema = mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "User",
+      ref: 'User',
     },
-
     name: {
       type: String,
       required: true,
@@ -16,32 +31,45 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-
+    brand: {
+      type: String,
+      required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+    },
     description: {
       type: String,
       required: true,
     },
-    featured: {
-      type: Boolean,
+    reviews: [reviewSchema],
+    rating: {
+      type: Number,
       required: true,
+      default: 0,
     },
-    amazonLink: {
-      type: String,
+    numReviews: {
+      type: Number,
       required: true,
+      default: 0,
     },
-    flipkartLink: {
-      type: String,
-    },
-
     price: {
       type: Number,
       required: true,
       default: 0,
     },
+    countInStock: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
   },
-  { timestamps: true }
-);
+  {
+    timestamps: true,
+  }
+)
 
-const Product = mongoose.model("Product", productSchema);
+const Product = mongoose.model('Product', productSchema)
 
-export default Product;
+export default Product
